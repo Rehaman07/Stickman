@@ -41,3 +41,14 @@ This project is part of my submission for the **Google I/O 2026: Code the Countd
 ├── game.js                 # Core game engine & loop logic
 ├── characters.js           # Character stats, abilities, and AI behavior
 └── drums_of_liberation.mp3 # Atmospheric game audio
+
+🧠 AI Implementation Narrative
+For the Google I/O Code the Countdown showcase, this project demonstrates:
+Speed to Market: Using AI to handle boilerplate canvas logic.
+Problem Solving: Implementing complex collision masks for stickman-style sprites via AI-assisted debugging.
+Accessibility: Leveraging AI to ensure the code remains lightweight and performant for low-bandwidth environments.
+👨‍💻 Author
+Rehaman
+Full-Stack Developer & AI Enthusiast
+GitHub Profile
+Disclaimer: This is a fan-made project inspired by Eiichiro Oda's One Piece. All character rights belong to their respective owners.
