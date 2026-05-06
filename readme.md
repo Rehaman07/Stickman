@@ -25,7 +25,7 @@ This project is part of my submission for the **Google I/O 2026: Code the Countd
 - **Frontend:** HTML5, CSS3
 - **Scripting:** Pure JavaScript (ES6+)
 - **Hosting:** GitHub Pages
-- **AI Tools:** Used for logic architecture, sprite behavior scripts, and debugging.
+- **AI Tools:** Google Antigravity 
 
 ## 🕹️ How to Play
 
