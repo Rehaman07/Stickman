@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>LUFFY vs IMU — One Piece Final Fight</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      background: #05040c;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 900px;
+      height: 500px
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      width: 100%;
+      height: 100%;
+      box-shadow: 0 0 60px rgba(100, 30, 180, 0.12), 0 0 120px rgba(50, 10, 80, 0.08)
+    }
+
+    #svgWorld {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      border-radius: 14px;
+      pointer-events: none
+    }
+
+    #cameraLayer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 900px;
+      height: 500px;
+      transform-origin: 0 0;
+      will-change: transform
+    }
+
+    .fighterSvg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 150px;
+      height: 150px;
+      overflow: visible;
+      transform-origin: 75px 125px;
+      will-change: transform, opacity;
+      filter: drop-shadow(0 0 5px rgba(255,255,255,0.18))
+    }
+
+    .fighterSvg.enemy {
+      filter: drop-shadow(0 0 5px rgba(255,0,0,0.24))
+    }
+
+    #ui {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10
+    }
+
+    .hw {
+      width: 260px
+    }
+
+    .hw h3 {
+      color: #fff;
+      font-size: 11px;
+      margin-bottom: 3px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.85
+    }
+
+    .hb {
+      height: 15px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06)
+    }
+
+    .hf {
+      height: 100%;
+      border-radius: 8px;
+      transition: width 0.18s ease
+    }
+
+    .p1 .hf {
+      background: linear-gradient(90deg, #aadcff, #fff)
+    }
+
+    .p2 .hf {
+      background: linear-gradient(90deg, #ff2222, #660000)
+    }
+
+    #rWrap {
+      position: absolute;
+      bottom: 45px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      pointer-events: none;
+      text-align: center
+    }
+
+    #rWrap span {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 9px;
+      letter-spacing: 1.5px
+    }
+
+    #rBg {
+      height: 5px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 2px
+    }
+
+    #rBar {
+      height: 100%;
+      width: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #ffe066, #ffaa00);
+      transition: width 0.15s
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: rgba(3, 2, 10, 0.9);
+      border-radius: 14px;
+      z-index: 20
+    }
+
+    #overlay.koOverlay {
+      background: radial-gradient(circle at center, rgba(120, 0, 0, 0.22), rgba(3, 2, 10, 0.92) 62%);
+      animation: koDarken 0.28s ease-out both
+    }
+
+    #oTitle {
+      font-size: 34px;
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-shadow: 0 0 25px rgba(180, 140, 255, 0.4);
+      margin-bottom: 8px
+    }
+
+    #overlay.koOverlay #oTitle {
+      color: #ff2525;
+      font-size: 86px;
+      letter-spacing: 6px;
+      text-shadow: 0 0 10px #000, 0 0 24px rgba(255, 0, 0, 0.9), 5px 5px 0 #050008;
+      animation: koPop 0.42s cubic-bezier(.17, 1.55, .35, 1) both
+    }
+
+    #overlay.koOverlay #oDesc {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: pre-line
+    }
+
+    #overlay.koOverlay #oBtn {
+      opacity: 0;
+      pointer-events: none
+    }
+
+    #overlay.koOverlay.ready #oBtn {
+      opacity: 1;
+      pointer-events: auto
+    }
+
+    @keyframes koPop {
+      0% {
+        opacity: 0;
+        transform: scale(0.22) rotate(-7deg)
+      }
+
+      60% {
+        opacity: 1;
+        transform: scale(1.18) rotate(2deg)
+      }
+
+      78% {
+        transform: scale(0.94) rotate(-1deg)
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0)
+      }
+    }
+
+    @keyframes koDarken {
+      from {
+        background-color: rgba(3, 2, 10, 0)
+      }
+
+      to {
+        background-color: rgba(3, 2, 10, 0.9)
+      }
+    }
+
+    #oDesc {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 12px;
+      margin-bottom: 20px;
+      text-align: center;
+      line-height: 1.6
+    }
+
+    #oBtn {
+      padding: 11px 40px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #b388ff, #7c4dff);
+      color: #fff;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 25px rgba(124, 77, 255, 0.3)
+    }
+
+    #oBtn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 6px 30px rgba(124, 77, 255, 0.5)
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    #ctrl {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.15);
+      font-size: 9px;
+      pointer-events: none;
+      white-space: nowrap
+    }
+
+    #mobileCtrl {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      z-index: 15
+    }
+
+    .mg {
+      display: flex;
+      gap: 6px
+    }
+
+    .mb {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none
+    }
+
+    .mb:active {
+      background: rgba(255, 255, 255, 0.15)
+    }
+
+    .mb.sp {
+      border-color: rgba(255, 200, 100, 0.3);
+      color: #ffe066
+    }
+  </style>
+</head>
+
+<body>
+  <div id="gameContainer">
+    <canvas id="gc" width="900" height="500"></canvas>
+    <div id="svgWorld">
+      <div id="cameraLayer"></div>
+    </div>
+    <div id="ui">
+      <div class="hw p1">
+        <h3>⚡ LUFFY </h3>
+        <div class="hb">
+          <div class="hf" id="hp1" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="hw p2" style="text-align:right">
+        <h3>IMU 👁️</h3>
+        <div class="hb">
+          <div class="hf" id="hp2" style="width:100%"></div>
+        </div>
+      </div>
+    </div>
+    <div id="rWrap"><span>SPECIAL</span>
+      <div id="rBg">
+        <div id="rBar"></div>
+      </div>
+    </div>
+    <div id="overlay">
+      <div id="oTitle">⚡ LUFFY vs IMU ⚡</div>
+      <div id="oDesc">A/D Move · W Jump · SPACE Attack · G Rubber Attack · H Giant Punch</div>
+      <button id="oBtn" onclick="startGame()">FIGHT!</button>
+    </div>
+    <div id="mobileCtrl" class="hidden">
+      <div class="mg">
+        <button class="mb" ontouchstart="mBtn('left',true)" ontouchend="mBtn('left',false)">◀</button>
+        <button class="mb" ontouchstart="mBtn('right',true)" ontouchend="mBtn('right',false)">▶</button>
+      </div>
+      <div class="mg">
+        <button class="mb" ontouchstart="mBtn('jump',true)" ontouchend="mBtn('jump',false)">▲</button>
+        <button class="mb" ontouchstart="mBtn('attack',true)" ontouchend="mBtn('attack',false)">👊</button>
+        <button class="mb sp" ontouchstart="mBtn('special',true)" ontouchend="mBtn('special',false)">G5</button>
+        <button class="mb sp" style="border-color:rgba(255,100,100,0.3);color:#ff6666" ontouchstart="mBtn('giant',true)"
+          ontouchend="mBtn('giant',false)">👊🔥</button>
+      </div>
+    </div>
+    <div id="ctrl">A/D Move · W Jump · SPACE Attack · G Rubber Special · H Giant Punch</div>
+    <audio id="bgm" src="drums_of_liberation.mp3" loop preload="auto"></audio>
+  </div>
+  <script src="characters.js"></script>
+  <script src="game.js"></script>
+</body>
+
+</html>
